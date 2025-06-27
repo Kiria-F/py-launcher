@@ -16,6 +16,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set up vars
+        run: |
+          echo "TARGET_REPO=${{ github.event.inputs.target_repo }}" >> $GITHUB_ENV
+          echo "BASE_BRANCH=${{ github.event.inputs.base_branch }}" >> $GITHUB_ENV
+          echo "PR_BRANCH=init-launcher-${{ github.run_id }}" >> $GITHUB_ENV
+          echo "PY_LAUNCHER_PAT=${{ secrets.PY_LAUNCHER_PAT }}" >> $GITHUB_ENV
+
+
       - name: Checkout py-launcher
         uses: actions/checkout@v4
 
@@ -26,8 +34,8 @@ jobs:
 
       - name: Clone target repo
         run: |
-          git clone --depth=1 -b ${{ github.event.inputs.base_branch }} \
-            https://x-access-token:${{ secrets.PY_LAUNCHER_PAT }}@github.com/Kiria-F/${{ github.event.inputs.target_repo }}.git \
+          git clone --depth=1 -b $BASE_BRANCH \
+            https://x-access-token:$PY_LAUNCHER_PAT@github.com/Kiria-F/$TARGET_REPO.git \
             target-repo
 
       - name: Copy update-launcher workflow into target repo
@@ -39,7 +47,7 @@ jobs:
         run: |
           cd target-repo
           BRANCH="init-launcher-$(date +%s)"
-          git checkout -b "$BRANCH"
+          git checkout -b "$PR_BRANCH"
           git add .github/workflows/update-launcher.yml
 
           if git diff --cached --quiet; then
@@ -48,16 +56,16 @@ jobs:
           fi
 
           git commit -m "Add update-launcher workflow for launcher.py"
-          git push -u origin "$BRANCH"
+          git push -u origin "$PR_BRANCH"
 
 
       - name: Create Pull Request
         env:
-          GH_TOKEN: ${{ secrets.PY_LAUNCHER_PAT }}
+          GH_TOKEN: $PY_LAUNCHER_PAT
         run: |
           gh pr create \
             --title "Subscribe to launcher updates" \
             --body "This adds a workflow that keeps launcher.py in sync with py-launcher." \
-            --base ${{ github.event.inputs.base_branch }} \
-            --head $BRANCH \
-            --repo Kiria-F/${{ github.event.inputs.target_repo }}
+            --base $BASE_BRANCH \
+            --head $PR_BRANCH \
+            --repo Kiria-F/$TARGET_REPO
