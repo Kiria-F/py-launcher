@@ -49,8 +49,9 @@ jobs:
 
 
       - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.PY_LAUNCHER_PAT }}
         run: |
-          gh auth login --with-token <<< "${{ secrets.PY_LAUNCHER_PAT }}"
           gh pr create \
             --title "Subscribe to launcher updates" \
             --body "This adds a workflow that keeps launcher.py in sync with py-launcher." \
