@@ -30,7 +30,7 @@ jobs:
             https://x-access-token:${{ secrets.PY_LAUNCHER_PAT }}@github.com/Kiria-F/${{ github.event.inputs.target_repo }}.git \
             target-repo
 
-      - name: Copy sync workflow into target repo
+      - name: Copy update-launcher workflow into target repo
         run: |
           mkdir -p target-repo/.github/workflows
           cp .workflow-templates/update-launcher.yml target-repo/.github/workflows/update-launcher.yml
@@ -38,16 +38,16 @@ jobs:
       - name: Create branch, commit, and push
         run: |
           cd target-repo
-          BRANCH="add-launcher-sync-$(date +%s)"
+          BRANCH="add-launcher-update-$(date +%s)"
           git checkout -b $BRANCH
-          git add .github/workflows/sync-launcher.yml
+          git add .github/workflows/update-launcher.yml
 
           if git diff --cached --quiet; then
             echo "No changes to commit."
             exit 0
           fi
 
-          git commit -m "Add sync workflow for launcher.py"
+          git commit -m "Add aupdate-launcher workflow"
           git push -u origin $BRANCH
 
       - name: Create Pull Request
