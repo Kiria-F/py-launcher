@@ -1,0 +1,61 @@
+name: Subscribe a repo to launcher updates
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_repo:
+        description: 'Target repo (only name, without org)'
+        required: true
+      base_branch:
+        description: 'Branch to add workflow to'
+        required: false
+        default: 'master'
+
+jobs:
+  inject-workflow:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout py-launcher
+        uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+
+      - name: Clone target repo
+        run: |
+          git clone --depth=1 -b ${{ github.event.inputs.base_branch }} \
+            https://x-access-token:${{ secrets.PY_LAUNCHER_PAT }}@github.com/Kiria-F/${{ github.event.inputs.target_repo }}.git \
+            target-repo
+
+      - name: Copy sync workflow into target repo
+        run: |
+          mkdir -p target-repo/.github/workflows
+          cp .workflow-templates/sync-launcher-template.yml target-repo/.github/workflows/sync-launcher.yml
+
+      - name: Create branch, commit, and push
+        run: |
+          cd target-repo
+          BRANCH="add-launcher-sync-$(date +%s)"
+          git checkout -b $BRANCH
+          git add .github/workflows/sync-launcher.yml
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Add sync workflow for launcher.py"
+          git push -u origin $BRANCH
+
+      - name: Create Pull Request
+        run: |
+          gh auth login --with-token <<< "${{ secrets.PY_LAUNCHER_PAT }}"
+          gh pr create \
+            --title "Subscribe to launcher updates" \
+            --body "This adds a workflow that keeps launcher.py in sync with py-launcher." \
+            --base ${{ github.event.inputs.base_branch }} \
+            --head $BRANCH \
+            --repo Kiria-F/${{ github.event.inputs.target_repo }}
