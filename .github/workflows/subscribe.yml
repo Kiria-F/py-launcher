@@ -37,8 +37,7 @@ jobs:
 
       - name: Create branch, commit, and push
         run: |
-          TARGET_DIR=target-${{ github.event.inputs.target_repo }}
-          cd "$TARGET_DIR"
+          cd target-repo
           BRANCH="init-launcher-$(date +%s)"
           git checkout -b "$BRANCH"
           git add .github/workflows/update-launcher.yml
