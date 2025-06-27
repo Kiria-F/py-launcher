@@ -35,17 +35,21 @@ jobs:
           mkdir -p target-repo/.github/workflows
           cp .workflow-templates/update-launcher.yml target-repo/.github/workflows/update-launcher.yml
 
-      - name: Create Pull Request
-        env:
-          GH_TOKEN: ${{ secrets.PY_LAUNCHER_PAT }}
+      - name: Create branch, commit, and push
         run: |
-          BRANCH="add-launcher-sync-$(date +%s)"
-          gh pr create \
-            --title "Subscribe to launcher updates" \
-            --body "This adds a workflow that keeps launcher.py in sync with py-launcher." \
-            --base "${{ github.event.inputs.base_branch }}" \
-            --head "$BRANCH" \
-            --repo "Kiria-F/${{ github.event.inputs.target_repo }}"
+          TARGET_DIR=target-${{ github.event.inputs.target_repo }}
+          cd "$TARGET_DIR"
+          BRANCH="init-launcher-$(date +%s)"
+          git checkout -b "$BRANCH"
+          git add .github/workflows/update-launcher.yml
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Add update-launcher workflow for launcher.py"
+          git push -u origin "$BRANCH"
 
 
       - name: Create Pull Request
