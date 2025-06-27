@@ -1,4 +1,4 @@
-name: Subscribe a repo to launcher updates
+name: Subscribe a repo
 
 on:
   workflow_dispatch:
