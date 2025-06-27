@@ -33,7 +33,7 @@ jobs:
       - name: Copy sync workflow into target repo
         run: |
           mkdir -p target-repo/.github/workflows
-          cp .workflow-templates/update-launcher-template.yml target-repo/.github/workflows/update-launcher.yml
+          cp .workflow-templates/update-launcher.yml target-repo/.github/workflows/update-launcher.yml
 
       - name: Create branch, commit, and push
         run: |
